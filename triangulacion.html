@@ -158,7 +158,7 @@
             color: var(--accent);
         }
 
-        /* --- LETRAS FLOTANTES MINIJUEGO --- */
+        /* --- LETRAS FLOTANTES MINIJUEGO (AHORA ESTÁTICAS) --- */
         .floating-letter {
             position: absolute;
             width: 45px;
@@ -176,7 +176,6 @@
             z-index: 1000;
             cursor: pointer;
             user-select: none;
-            transition: top 1.5s linear, left 1.5s linear; /* Movimiento suave */
         }
         
         #wordBox {
@@ -257,7 +256,7 @@
             <div class="token-box" style="margin-bottom: 20px;">
                 PARTE 1: <b>https://drive.google.com/file/d/</b>
             </div>
-            <p style="color: var(--accent); font-weight: bold; font-size: 13px;">ATRAPA LAS LETRAS EN ORDEN PARA PASAR DE FASE:</p>
+            <p style="color: var(--accent); font-weight: bold; font-size: 13px;">HAZ CLIC EN LAS LETRAS EN ORDEN PARA AVANZAR:</p>
             <div id="wordBox"></div>
         </div>
     </div>
@@ -308,14 +307,12 @@
         let mouseInvertidoActivo = true;
         const fakeCursor = document.getElementById('fakeCursor');
 
-        // Mueve el cursor falso invertido al centro
         document.addEventListener('mousemove', (e) => {
             if (!mouseInvertidoActivo) return;
             
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
             
-            // Inversión matemática
             const fakeX = centerX - (e.clientX - centerX);
             const fakeY = centerY - (e.clientY - centerY);
             
@@ -323,7 +320,6 @@
             fakeCursor.style.top = fakeY + 'px';
         });
 
-        // Intercepta los clics físicos y emite un clic en el cursor falso
         document.addEventListener('click', (e) => {
             if (!mouseInvertidoActivo) return;
             
@@ -336,14 +332,13 @@
                 const fakeX = centerX - (e.clientX - centerX);
                 const fakeY = centerY - (e.clientY - centerY);
                 
-                // Ocultar el fakeCursor un milisegundo para no clickearlo a él mismo
                 fakeCursor.style.display = 'none';
                 const target = document.elementFromPoint(fakeX, fakeY);
                 fakeCursor.style.display = 'block';
                 
                 if (target) {
-                    target.focus(); // Vital para que pueda escribir en los inputs
-                    target.click(); // Gatilla botones o letras
+                    target.focus(); 
+                    target.click(); 
                 }
             }
         }, true);
@@ -368,13 +363,13 @@
                 lat: parseFloat(atob('LTM3LjA5NzYwNw==')), 
                 lng: parseFloat(atob('LTczLjE1NjkzOA==')), 
                 img: "meme2.jpg",
-                sound: "sound2.mp3" // Cambia si usas archivo o enlace de archive.org
+                sound: "https://ia801503.us.archive.org/15/items/bad-recorder-happy-birthday/bad-recorder-happy-birthday.mp3"
             },
             3: { 
                 lat: parseFloat(atob('LTM3LjA5MTYyMQ==')), 
                 lng: parseFloat(atob('LTczLjE2NDMzMg==')), 
                 img: "meme3.jpg",
-                sound: "sound3.mp3" // Cambia si usas archivo o enlace de archive.org
+                sound: "https://ia600708.us.archive.org/4/items/ultra-instinct-theme-clash-of-gods/ultra-instinct-theme-clash-of-gods.mp3"
             }
         };
         const TOLERANCIA = 0.002;
@@ -439,7 +434,6 @@
                 triggerScreamerLento(target);
                 document.getElementById('result' + nodoId).classList.remove('hidden');
                 
-                // Si es el Nodo 1, iniciamos el minijuego de las letras y escondemos el botón
                 if(nodoId === 1) {
                     document.getElementById('btnNodo1').classList.add('hidden');
                     iniciarMinijuegoAvanzar();
@@ -450,30 +444,22 @@
         }
 
         /* =========================================
-           MINIJUEGO "AVANZAR" (Letras flotantes)
+           MINIJUEGO "AVANZAR" (Letras estáticas)
            ========================================= */
         const palabraClave = "AVANZAR";
         let letrasActuales = "";
 
         function iniciarMinijuegoAvanzar() {
             const container = document.body;
-            let index = 0;
             
-            // Genera las letras regadas por la pantalla
             palabraClave.split('').forEach(letra => {
                 let div = document.createElement('div');
                 div.innerText = letra;
                 div.className = 'floating-letter';
                 
-                // Posición inicial aleatoria
+                // Posición inicial aleatoria (estática)
                 div.style.left = (Math.random() * 80 + 10) + 'vw';
                 div.style.top = (Math.random() * 80 + 10) + 'vh';
-                
-                // Hace que se muevan cada 1.5 - 2.5 segundos
-                div.moveInterval = setInterval(() => {
-                    div.style.left = (Math.random() * 80 + 10) + 'vw';
-                    div.style.top = (Math.random() * 80 + 10) + 'vh';
-                }, 1500 + Math.random() * 1000);
 
                 // Función al hacer click en la letra
                 div.onclick = () => {
@@ -485,11 +471,7 @@
                         
                         // Si completó AVANZAR
                         if (letrasActuales === palabraClave) {
-                            // Limpia todos los intervalos y letras
-                            document.querySelectorAll('.floating-letter').forEach(l => {
-                                clearInterval(l.moveInterval);
-                                l.remove();
-                            });
+                            document.querySelectorAll('.floating-letter').forEach(l => l.remove());
                             apagarMouseInvertido(); // ¡Fin del mouse invertido!
                             alert("¡Acceso desbloqueado! Sistema de control de mouse restaurado.");
                             irPaso(2);
