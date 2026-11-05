@@ -2,160 +2,380 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Triangulación de Nodos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Core Network Terminal · Geospatial Relay</title>
     <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(17, 24, 39, 0.85);
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.25);
+            --text-main: #f3f4f6;
+            --text-sub: #9ca3af;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Paletas dinámicas por fase */
+        body.theme-phase1 { --accent: #38bdf8; --accent-glow: rgba(56, 189, 248, 0.3); }
+        body.theme-phase2 { --accent: #a855f7; --accent-glow: rgba(168, 85, 247, 0.3); }
+        body.theme-phase3 { --accent: #10b981; --accent-glow: rgba(16, 185, 129, 0.3); }
+
+        * { box-sizing: border-box; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+
         body {
-            background-color: #0a0a0a;
-            color: #00ff00;
-            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            margin: 0;
+            overflow-x: hidden;
+        }
+
+        #confettiCanvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 36px 32px;
+            width: 100%;
+            max-width: 520px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .card:hover {
+            transform: translateY(-4px) scale(1.01);
+            border-color: var(--accent);
+            box-shadow: 0 25px 50px -12px var(--accent-glow);
+        }
+
+        .badge {
+            display: inline-block;
+            font-family: monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 15%, transparent);
+            border: 1px solid var(--accent);
+            padding: 4px 10px;
+            border-radius: 9999px;
+            margin-bottom: 14px;
+        }
+
+        h2 { margin: 0 0 10px 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+        p { color: var(--text-sub); font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+
+        input[type="text"] {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #fff;
+            font-family: monospace;
+            font-size: 15px;
+            margin-bottom: 18px;
             text-align: center;
         }
-        .container {
-            border: 1px solid #00ff00;
-            padding: 30px;
-            box-shadow: 0 0 15px #00ff0033;
-            max-width: 600px;
-            width: 90%;
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+            transform: scale(1.02);
         }
-        input {
-            background: black;
-            border: 1px solid #00ff00;
-            color: #00ff00;
-            padding: 8px;
-            margin: 10px 0 20px 0;
-            width: 80%;
-            font-family: inherit;
-            text-align: center;
-        }
-        button {
-            background: #00ff00;
-            color: black;
+
+        .btn-primary {
+            width: 100%;
+            background: var(--accent);
+            color: #0b0f19;
+            font-weight: 600;
+            font-size: 15px;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
+            box-shadow: 0 4px 14px 0 var(--accent-glow);
         }
-        button:hover { background: #00cc00; }
-        .oculto { display: none; }
-        .success-box { margin-top: 20px; color: white; border-top: 1px dashed #00ff00; padding-top: 20px; }
-        label { font-weight: bold; }
+
+        .btn-primary:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+        }
+
+        .btn-back {
+            background: transparent;
+            color: var(--text-sub);
+            border: 1px solid var(--border);
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 16px;
+        }
+
+        .btn-back:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
+
+        /* Panel contenedor del trozo de link desbloqueado */
+        .token-box {
+            margin-top: 20px;
+            padding: 14px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px dashed var(--accent);
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            word-break: break-all;
+            user-select: all;
+            color: var(--accent);
+        }
+
+        /* Overlay con la foto estilo screamer lento */
+        #memeOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        #memeOverlay.active { opacity: 1; }
+
+        #memeOverlay img {
+            max-width: 80vw;
+            max-height: 70vh;
+            border-radius: 16px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9);
+            transform: scale(0.95);
+            transition: transform 5s ease-out;
+        }
+
+        #memeOverlay.active img { transform: scale(1.05); }
+
+        .hidden { display: none !important; }
     </style>
 </head>
-<body>
-    <div class="container">
-        
-        <!-- FASE 1: FIREWALL DE AMISTAD -->
-        <div id="firewall">
-            <h2>SISTEMA DE TRIANGULACIÓN BLOQUEADO. <br>SE REQUIERE PRUEBA DE IDENTIDAD.</h2>
-            
-            <label>1. ¿Hace cuántos años somos amigos?</label><br>
-            <input type="text" id="q1" placeholder="Respuesta..."><br>
-            
-            <label>2. ¿Cuál es la fecha exacta en la que conocimos a Diego Fierro?</label><br>
-            <input type="text" id="q2" placeholder="Respuesta..."><br>
-            
-            <label>3. ¿Qué juego singleplayer jugamos online de manera falsa y por llamada de whatsapp po wn?</label><br>
-            <input type="text" id="q3" placeholder="Respuesta..."><br>
-            
-            <button onclick="validarIdentidad()">AUTENTICAR</button>
+<body class="theme-phase1">
+
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- Overlay para la aparición suave de fotos -->
+    <div id="memeOverlay">
+        <img id="memeImg" src="" alt="Transmisión">
+    </div>
+
+    <!-- TARJETA 0: FIREWALL DE AMISTAD -->
+    <div id="step0" class="card">
+        <span class="badge">Autenticación de Nivel 1</span>
+        <h2>Verificación de Identidad</h2>
+        <p>Responde las llaves criptográficas antes de abrir los canales geodésicos.</p>
+
+        <input type="text" id="q1" placeholder="¿Hace cuántos años somos amigos?">
+        <input type="text" id="q2" placeholder="¿Fecha exacta en que conocimos a Diego Fierro?">
+        <input type="text" id="q3" placeholder="¿Singleplayer online falso por wsp po wn?">
+
+        <button class="btn-primary" onclick="validarFirewall()">Validar Identidad</button>
+    </div>
+
+    <!-- TARJETA 1: CASA DEL CUMPLEAÑERO -->
+    <div id="step1" class="card hidden">
+        <span class="badge">Nodo Alpha</span>
+        <h2>Coordenada 01: Base de Operaciones</h2>
+        <p>Introduce la ubicación satelital de la Casa del Cumpleañero.</p>
+
+        <input type="text" id="coord1" placeholder="Ej: -97.12345, -12.67890">
+        <button class="btn-primary" onclick="validarPaso(1)">Procesar Coordenada</button>
+
+        <div id="result1" class="hidden">
+            <div class="token-box">
+                PARTE 1: <b>https://drive.google.com/file/d/</b>
+            </div>
+            <button class="btn-primary" style="margin-top:14px;" onclick="irPaso(2)">Siguiente Fase →</button>
         </div>
+    </div>
 
-        <!-- FASE 2: COORDENADAS (Oculto inicialmente) -->
-        <div id="coordenadas" class="oculto">
-            <h2>SISTEMA DE TRIANGULACIÓN ACTIVO</h2>
-            <p>Pega las coordenadas exactas de Google Maps (latitud, longitud) de los tres nodos requeridos:</p>
-            
-            <label>Nodo 1 (Casa del cumpleañero):</label><br>
-            <input type="text" id="coord1" placeholder="Ej: -97.123, -12.456"><br>
-            
-            <label>Nodo 2 (La mejor cancha de Chile):</label><br>
-            <input type="text" id="coord2" placeholder="Ej: -97.888, -12.333"><br>
-            
-            <label>Nodo 3 (El acertijo: lugar donde performó a máximo nivel la Ana):</label><br>
-            <input type="text" id="coord3" placeholder="Ej: -97.999, -12.111"><br>
-            
-            <button onclick="verificarCoordenadas()">VALIDAR TRIANGULACIÓN</button>
+    <!-- TARJETA 2: LA MEJOR CANCHA (Troleo: esquiva el cursor) -->
+    <div id="step2" class="card hidden">
+        <span class="badge">Nodo Beta</span>
+        <h2>Coordenada 02: Santuario Deportivo</h2>
+        <p>Introduce las coordenadas del epicentro: La mejor cancha de Chile.</p>
 
-            <div id="resultado" class="oculto success-box"></div>
+        <input type="text" id="coord2" placeholder="Ej: -97.12345, -12.67890">
+        <button class="btn-primary" onclick="validarPaso(2)">Procesar Coordenada</button>
+
+        <div id="result2" class="hidden">
+            <p style="color: var(--accent); margin-top:15px; margin-bottom:5px;">⚠️ Copia el código (si puedes alcanzarlo):</p>
+            <!-- Este recuadro se moverá solo cuando el mouse intente tocarlo -->
+            <div id="evasiveBox" class="token-box" onmouseover="escaparCaja(this)" style="position: relative; transition: top 0.15s, left 0.15s;">
+                PARTE 2: <b>TU_ID_DE_DRIVE_AQUI</b>
+            </div>
+            <button class="btn-primary" style="margin-top:20px;" onclick="irPaso(3)">Siguiente Fase →</button>
         </div>
+        <button class="btn-back" onclick="irPaso(1)">← Volver al Nodo Anterior</button>
+    </div>
 
+    <!-- TARJETA 3: EL ACERTIJO DE LA ANA -->
+    <div id="step3" class="card hidden">
+        <span class="badge">Nodo Gamma · Final</span>
+        <h2>Coordenada 03: Performance Histórica</h2>
+        <p>Punto cardinal del enigma: Donde performó a máximo nivel la Ana.</p>
+
+        <input type="text" id="coord3" placeholder="Ej: -97.12345, -12.67890">
+        <button class="btn-primary" onclick="validarPaso(3)">Completar Vector</button>
+
+        <div id="result3" class="hidden">
+            <div class="token-box">
+                PARTE 3: <b>/view?usp=sharing</b>
+            </div>
+            <p style="color:#fff; margin-top:18px;">Enlace completo listo. Únelo en tu navegador y reclama tu botín.</p>
+        </div>
+        <button class="btn-back" onclick="irPaso(2)">← Volver al Nodo Anterior</button>
     </div>
 
     <script>
-        /* --- LÓGICA DEL FIREWALL DE AMISTAD --- */
-        function validarIdentidad() {
+        console.log("%cSeguridad activa. No intentes saltar nodos.", "color: #38bdf8; font-weight: bold;");
+
+        // Coordenadas reales ofuscadas en Base64 (Tolerancia ~200m)
+        const NODOS = {
+            1: { lat: parseFloat(atob('LTM3LjA4NDczOQ==')), lng: parseFloat(atob('LTczLjE1MjI5MA==')), img: "meme1.jpg" },
+            2: { lat: parseFloat(atob('LTM3LjA5NzYwNw==')), lng: parseFloat(atob('LTczLjE1NjkzOA==')), img: "meme2.jpg" },
+            3: { lat: parseFloat(atob('LTM3LjA5MTYyMQ==')), lng: parseFloat(atob('LTczLjE2NDMzMg==')), img: "meme3.jpg" }
+        };
+        const TOLERANCIA = 0.002;
+
+        /* --- FIREWALL --- */
+        function validarFirewall() {
             let r1 = document.getElementById('q1').value.toLowerCase();
             let r2 = document.getElementById('q2').value.toLowerCase();
             let r3 = document.getElementById('q3').value.toLowerCase();
 
-            let check1 = r1.includes('11'); 
-            let check2 = r2.includes('no se') || r2.includes('no hay') || r2.includes('no existe') || r2.includes('ni idea') || r2.includes('registro');
-            let check3 = r3.includes('outlas'); 
+            let c1 = r1.includes(atob('MTE='));
+            let c2 = [atob('bm8gc2U='), atob('bm8gaGF5'), atob('bm8gZXhpc3Rl'), atob('bmkgaWRlYQ=='), atob('cmVnaXN0cm8=')].some(k => r2.includes(k));
+            let c3 = r3.includes(atob('b3V0bGFz'));
 
-            if (check1 && check2 && check3) {
-                document.getElementById('firewall').style.display = 'none';
-                document.getElementById('coordenadas').style.display = 'block';
+            if (c1 && c2 && c3) {
+                irPaso(1);
             } else {
-                alert("INTRUSO DETECTADO. RESPUESTAS INCORRECTAS.");
+                alert("Llaves criptográficas erróneas. Acceso bloqueado.");
             }
         }
 
-        /* --- LÓGICA DE LAS COORDENADAS --- */
-        const NODO1 = { lat: -37.084739, lng: -73.152290 };
-        const NODO2 = { lat: -37.097607, lng: -73.156938 };
-        const NODO3 = { lat: -37.091621, lng: -73.164332 };
-        
-        // Tolerancia subida a ~200 metros para mayor comodidad
-        const TOLERANCIA = 0.002; 
+        /* --- NAVEGACIÓN Y PALETAS --- */
+        function irPaso(paso) {
+            document.querySelectorAll('.card').forEach(el => el.classList.add('hidden'));
+            document.getElementById('step' + paso).classList.remove('hidden');
 
-        function validarPunto(inputStr, target) {
-            let partes = inputStr.replace(/ /g, '').split(',');
-            if(partes.length !== 2) return false;
-            
+            document.body.className = '';
+            document.body.classList.add('theme-phase' + paso);
+        }
+
+        /* --- EFECTO MEME DESVANECIDO (5 segundos) --- */
+        function triggerScreamerLento(imgSrc) {
+            const overlay = document.getElementById('memeOverlay');
+            const img = document.getElementById('memeImg');
+            img.src = imgSrc;
+
+            overlay.classList.remove('hidden');
+            // Timeout pequeño para forzar la animación CSS de opacidad
+            setTimeout(() => { overlay.classList.add('active'); }, 50);
+
+            // Se queda visible y luego se retira suavemente
+            setTimeout(() => {
+                overlay.classList.remove('active');
+                setTimeout(() => overlay.classList.add('hidden'), 5000);
+            }, 5000);
+        }
+
+        /* --- VALIDACIÓN DE COORDENADAS --- */
+        function validarPaso(nodoId) {
+            let val = document.getElementById('coord' + nodoId).value;
+            let partes = val.replace(/ /g, '').split(',');
+            if (partes.length !== 2) {
+                alert("Formato inválido. Pega: Latitud, Longitud");
+                return;
+            }
+
             let lat = parseFloat(partes[0]);
             let lng = parseFloat(partes[1]);
-            
-            if(isNaN(lat) || isNaN(lng)) return false;
+            let target = NODOS[nodoId];
 
-            let diffLat = Math.abs(lat - target.lat);
-            let diffLng = Math.abs(lng - target.lng);
-            
-            return (diffLat <= TOLERANCIA && diffLng <= TOLERANCIA);
+            if (Math.abs(lat - target.lat) <= TOLERANCIA && Math.abs(lng - target.lng) <= TOLERANCIA) {
+                lanzarConfeti();
+                triggerScreamerLento(target.img);
+                document.getElementById('result' + nodoId).classList.remove('hidden');
+            } else {
+                alert("Vector de posición fuera de radio de cobertura.");
+            }
         }
 
-        function verificarCoordenadas() {
-            let val1 = document.getElementById('coord1').value;
-            let val2 = document.getElementById('coord2').value;
-            let val3 = document.getElementById('coord3').value;
-            let res = document.getElementById('resultado');
+        /* --- TROLEO: CAJA EVASIVA (Nodo 2) --- */
+        function escaparCaja(elem) {
+            // Genera saltos aleatorios de posición relativa
+            let randomX = (Math.random() - 0.5) * 220;
+            let randomY = (Math.random() - 0.5) * 120;
+            elem.style.left = randomX + 'px';
+            elem.style.top = randomY + 'px';
+        }
 
-            let acierto1 = validarPunto(val1, NODO1);
-            let acierto2 = validarPunto(val2, NODO2);
-            let acierto3 = validarPunto(val3, NODO3);
+        /* --- CONFETI EN LOS BORDES (Canvas Nativo) --- */
+        function lanzarConfeti() {
+            const canvas = document.getElementById('confettiCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
 
-            if (acierto1 && acierto2 && acierto3) {
-                res.style.display = "block";
-                res.innerHTML = `
-                    <h3 style="color: #00ff00;">>>> TRIANGULACIÓN EXITOSA <<<</h3>
-                    <p>Acceso concedido al servidor de cumpleaños.</p>
-                    <p>Une las siguientes piezas en tu navegador para ver tu regalo:</p>
-                    <br>
-                    <p style="font-size: 14px;">
-                        Parte 1: <b>https://drive.google.com/file/d/</b><br>
-                        Parte 2: <b>TU_ID_DE_ARCHIVO_AQUI</b><br>
-                        Parte 3: <b>/view?usp=sharing</b>
-                    </p>
-                `;
-            } else {
-                alert("ERROR: Una o más coordenadas están fuera de rango o mal formateadas. Asegúrate de pegarlas con el formato 'Latitud, Longitud'.");
+            let particles = [];
+            let colors = ['#38bdf8', '#a855f7', '#10b981', '#f59e0b', '#ec4899'];
+
+            for (let i = 0; i < 90; i++) {
+                particles.push({
+                    x: Math.random() < 0.5 ? Math.random() * 80 : canvas.width - Math.random() * 80,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: Math.random() * -6 - 2,
+                    alpha: 1
+                });
             }
+
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((p, index) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.2; // Gravedad
+                    p.alpha -= 0.015;
+
+                    ctx.globalAlpha = Math.max(0, p.alpha);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+
+                    if (p.alpha <= 0) particles.splice(index, 1);
+                });
+
+                if (particles.length > 0) requestAnimationFrame(render);
+                else ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+            render();
         }
     </script>
 </body>
