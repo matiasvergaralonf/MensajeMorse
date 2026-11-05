@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Transmisión Entrante...</title>
+    <style>
+        body { 
+            background-color: black; 
+            margin: 0; 
+            height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            overflow: hidden;
+        }
+        .on { background-color: white; }
+        /* Un pequeño texto apenas visible para darle una pista técnica */
+        #pista { color: #111; font-family: monospace; font-size: 14px; user-select: none; }
+        .on #pista { color: #eee; }
+    </style>
+</head>
+<body>
+    <div id="pista">T=250ms</div>
+
+    <script>
+        // 1. LA TRAMPA DEL F12 (Inspeccionar elemento)
+        console.log("%cVulnerabilidad detectada. Acceso directo a la clave del sistema: https://bit.ly/3LQ2EaP", "color: red; font-size: 16px; font-weight: bold;");
+        console.log("Si creíste que dejaría la palabra en el código fuente, me ofendes.");
+
+        // 2. EL TRANSMISOR OOK (La palabra "MAPA" encriptada en tiempos)
+        // M = -- (750, 250, 750)
+        // A = .- (250, 250, 750)
+        // P = .--. (250, 250, 750, 250, 750, 250, 250)
+        // A = .- (250, 250, 750)
+        // Aquí están los milisegundos puros, alternando Encendido / Apagado. Es imposible leer la palabra a simple vista.
+        const tiempos = [
+            750, 250, 750, 750, // M + pausa de letra
+            250, 250, 750, 750, // A + pausa de letra
+            250, 250, 750, 250, 750, 250, 250, 750, // P + pausa de letra
+            250, 250, 750, 1750 // A + pausa de palabra larga para reiniciar
+        ];
+
+        async function transmitir() {
+            while(true) {
+                let encendido = true;
+                for(let t of tiempos) {
+                    if(encendido) {
+                        document.body.classList.add('on');
+                    } else {
+                        document.body.classList.remove('on');
+                    }
+                    await new Promise(r => setTimeout(r, t));
+                    encendido = !encendido;
+                }
+            }
+        }
+        
+        // Iniciar la transmisión un segundo después de abrir la página
+        setTimeout(transmitir, 1000);
+
+        // 3. EL LOGIN INVISIBLE
+        let tipeado = "";
+        const secreto = "mapa"; 
+        
+        document.addEventListener("keydown", (e) => {
+            // Ignorar teclas como Shift, Ctrl, etc.
+            if(e.key.length > 1) return; 
+            
+            tipeado += e.key.toLowerCase();
+            // Mantener el string del tamaño de la palabra secreta
+            if (tipeado.length > secreto.length) {
+                tipeado = tipeado.slice(-secreto.length);
+            }
+            
+            // Si teclea la palabra correcta, redirigir
+            if (tipeado === secreto) {
+                document.body.style.backgroundColor = "#00ff00"; // Pantalla verde de éxito
+                setTimeout(() => {
+                    window.location.href = "triangulacion.html";
+                }, 800);
+            }
+        });
+    </script>
+</body>
+</html>
