@@ -14,11 +14,13 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
+            text-align: center;
         }
         .container {
             border: 1px solid #00ff00;
             padding: 30px;
             box-shadow: 0 0 15px #00ff0033;
+            max-width: 600px;
         }
         input {
             background: black;
@@ -26,8 +28,9 @@
             color: #00ff00;
             padding: 8px;
             margin: 10px 0;
-            width: 200px;
+            width: 80%;
             font-family: inherit;
+            text-align: center;
         }
         button {
             background: #00ff00;
@@ -39,22 +42,22 @@
             margin-top: 15px;
         }
         button:hover { background: #00cc00; }
-        .oculto { display: none; margin-top: 20px; color: white; }
+        .oculto { display: none; margin-top: 20px; color: white; border-top: 1px dashed #00ff00; padding-top: 20px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>SISTEMA DE TRIANGULACIÓN ACTIVO</h2>
-        <p>Introduce la LATITUD exacta de los tres nodos requeridos:</p>
+        <p>Pega las coordenadas exactas de Google Maps (latitud, longitud) de los tres nodos requeridos:</p>
         
-        <label>Nodo 1 (Tu casa):</label><br>
-        <input type="number" id="latCumpleañero" step="any" placeholder="Ej: -36.82512"><br>
+        <label>Nodo 1 (Casa del cumpleañero):</label><br>
+        <input type="text" id="coord1" placeholder="Ej: -37.084, -73.152"><br>
         
-        <label>Nodo 2 (Mi departamento):</label><br>
-        <input type="number" id="latMatias" step="any" placeholder="Ej: -36.82512"><br>
+        <label>Nodo 2 (La mejor cancha de Chile):</label><br>
+        <input type="text" id="coord2" placeholder="Ej: -37.084, -73.152"><br>
         
-        <label>Nodo 3 (Casa de nuestro amigo):</label><br>
-        <input type="number" id="latAmigo" step="any" placeholder="Ej: -36.82512"><br>
+        <label>Nodo 3 (El acertijo: lugar donde performó a máximo nivel la Ana):</label><br>
+        <input type="text" id="coord3" placeholder="Ej: -37.084, -73.152"><br>
         
         <button onclick="verificarCoordenadas()">VALIDAR TRIANGULACIÓN</button>
 
@@ -62,35 +65,56 @@
     </div>
 
     <script>
-        // REEMPLAZA ESTOS VALORES CON LAS LATITUDES REALES DE GOOGLE MAPS
-        const REAL_CUMPLEAÑERO = -36.12345; 
-        const REAL_MATIAS = -36.82512;       
-        const REAL_AMIGO = -37.01234;        
-        const TOLERANCIA = 0.003; // Margen de error tolerado
+        // Coordenadas reales
+        const NODO1 = { lat: -37.084739, lng: -73.152290 };
+        const NODO2 = { lat: -37.097607, lng: -73.156938 };
+        const NODO3 = { lat: -37.091621, lng: -73.164332 };
+        
+        // Tolerancia de ~100 metros
+        const TOLERANCIA = 0.001; 
+
+        function validarPunto(inputStr, target) {
+            // Limpiar el texto y separar por coma
+            let partes = inputStr.replace(/ /g, '').split(',');
+            if(partes.length !== 2) return false;
+            
+            let lat = parseFloat(partes[0]);
+            let lng = parseFloat(partes[1]);
+            
+            if(isNaN(lat) || isNaN(lng)) return false;
+
+            // Verificar si ambas coordenadas están dentro del radio de 100 metros
+            let diffLat = Math.abs(lat - target.lat);
+            let diffLng = Math.abs(lng - target.lng);
+            
+            return (diffLat <= TOLERANCIA && diffLng <= TOLERANCIA);
+        }
 
         function verificarCoordenadas() {
-            let lat1 = parseFloat(document.getElementById('latCumpleañero').value);
-            let lat2 = parseFloat(document.getElementById('latMatias').value);
-            let lat3 = parseFloat(document.getElementById('latAmigo').value);
+            let val1 = document.getElementById('coord1').value;
+            let val2 = document.getElementById('coord2').value;
+            let val3 = document.getElementById('coord3').value;
             let res = document.getElementById('resultado');
 
-            // Verifica si los tres valores ingresados están dentro del margen de tolerancia
-            if (Math.abs(lat1 - REAL_CUMPLEAÑERO) <= TOLERANCIA &&
-                Math.abs(lat2 - REAL_MATIAS) <= TOLERANCIA &&
-                Math.abs(lat3 - REAL_AMIGO) <= TOLERANCIA) {
-                
+            let acierto1 = validarPunto(val1, NODO1);
+            let acierto2 = validarPunto(val2, NODO2);
+            let acierto3 = validarPunto(val3, NODO3);
+
+            if (acierto1 && acierto2 && acierto3) {
                 res.style.display = "block";
                 res.innerHTML = `
                     <h3 style="color: #00ff00;">>>> TRIANGULACIÓN EXITOSA <<<</h3>
-                    <p>Acceso concedido al archivo final.</p>
-                    <p>Une las siguientes piezas para formar la URL:</p>
+                    <p>Acceso concedido al servidor de cumpleaños.</p>
+                    <p>Une las siguientes piezas en tu navegador para ver tu regalo:</p>
                     <br>
-                    <p>Parte 1: <b>https://drive.google.com/file/d/</b></p>
-                    <p>Parte 2: <b>TU_ID_DE_ARCHIVO_AQUI</b></p>
-                    <p>Parte 3: <b>/view?usp=sharing</b></p>
+                    <p style="font-size: 14px;">
+                        Parte 1: <b>https://drive.google.com/file/d/</b><br>
+                        Parte 2: <b>TU_ID_DE_ARCHIVO_AQUI</b><br>
+                        Parte 3: <b>/view?usp=sharing</b>
+                    </p>
                 `;
             } else {
-                alert("ERROR: Coordenadas incorrectas o fuera de rango. Revisa bien los signos negativos.");
+                alert("ERROR: Una o más coordenadas están fuera de rango o mal formateadas. Asegúrate de pegarlas con el formato 'Latitud, Longitud'.");
             }
         }
     </script>
