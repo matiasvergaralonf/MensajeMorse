@@ -12,7 +12,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             text-align: center;
         }
@@ -21,13 +21,14 @@
             padding: 30px;
             box-shadow: 0 0 15px #00ff0033;
             max-width: 600px;
+            width: 90%;
         }
         input {
             background: black;
             border: 1px solid #00ff00;
             color: #00ff00;
             padding: 8px;
-            margin: 10px 0;
+            margin: 10px 0 20px 0;
             width: 80%;
             font-family: inherit;
             text-align: center;
@@ -39,32 +40,76 @@
             padding: 10px 20px;
             cursor: pointer;
             font-weight: bold;
-            margin-top: 15px;
+            margin-top: 10px;
         }
         button:hover { background: #00cc00; }
-        .oculto { display: none; margin-top: 20px; color: white; border-top: 1px dashed #00ff00; padding-top: 20px; }
+        .oculto { display: none; }
+        .success-box { margin-top: 20px; color: white; border-top: 1px dashed #00ff00; padding-top: 20px; }
+        label { font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>SISTEMA DE TRIANGULACIÓN ACTIVO</h2>
-        <p>Pega las coordenadas exactas de Google Maps (latitud, longitud) de los tres nodos requeridos:</p>
         
-        <label>Nodo 1 (Casa del cumpleañero):</label><br>
-        <input type="text" id="coord1" placeholder="Ej: -37.084, -73.152"><br>
-        
-        <label>Nodo 2 (La mejor cancha de Chile):</label><br>
-        <input type="text" id="coord2" placeholder="Ej: -37.084, -73.152"><br>
-        
-        <label>Nodo 3 (El acertijo: lugar donde performó a máximo nivel la Ana):</label><br>
-        <input type="text" id="coord3" placeholder="Ej: -37.084, -73.152"><br>
-        
-        <button onclick="verificarCoordenadas()">VALIDAR TRIANGULACIÓN</button>
+        <!-- FASE 1: FIREWALL DE AMISTAD -->
+        <div id="firewall">
+            <h2>SISTEMA DE TRIANGULACIÓN BLOQUEADO. <br>SE REQUIERE PRUEBA DE IDENTIDAD.</h2>
+            
+            <label>1. ¿Hace cuántos años somos amigos?</label><br>
+            <input type="text" id="q1" placeholder="Respuesta..."><br>
+            
+            <label>2. ¿Cuál es la fecha exacta en la que conocimos a Diego Fierro?</label><br>
+            <input type="text" id="q2" placeholder="Respuesta..."><br>
+            
+            <label>3. ¿Qué juego singleplayer jugamos online de manera falsa y por llamada de whatsapp po wn?</label><br>
+            <input type="text" id="q3" placeholder="Respuesta..."><br>
+            
+            <button onclick="validarIdentidad()">AUTENTICAR</button>
+        </div>
 
-        <div id="resultado" class="oculto"></div>
+        <!-- FASE 2: COORDENADAS (Oculto inicialmente) -->
+        <div id="coordenadas" class="oculto">
+            <h2>SISTEMA DE TRIANGULACIÓN ACTIVO</h2>
+            <p>Pega las coordenadas exactas de Google Maps (latitud, longitud) de los tres nodos requeridos:</p>
+            
+            <label>Nodo 1 (Casa del cumpleañero):</label><br>
+            <input type="text" id="coord1" placeholder="Ej: -37.084, -73.152"><br>
+            
+            <label>Nodo 2 (La mejor cancha de Chile):</label><br>
+            <input type="text" id="coord2" placeholder="Ej: -37.084, -73.152"><br>
+            
+            <label>Nodo 3 (El acertijo: lugar donde performó a máximo nivel la Ana):</label><br>
+            <input type="text" id="coord3" placeholder="Ej: -37.084, -73.152"><br>
+            
+            <button onclick="verificarCoordenadas()">VALIDAR TRIANGULACIÓN</button>
+
+            <div id="resultado" class="oculto success-box"></div>
+        </div>
+
     </div>
 
     <script>
+        /* --- LÓGICA DEL FIREWALL DE AMISTAD --- */
+        function validarIdentidad() {
+            // Convertimos las respuestas a minúsculas para evaluar más fácil
+            let r1 = document.getElementById('q1').value.toLowerCase();
+            let r2 = document.getElementById('q2').value.toLowerCase();
+            let r3 = document.getElementById('q3').value.toLowerCase();
+
+            // Criterios flexibles:
+            let check1 = r1.includes('11'); 
+            let check2 = r2.includes('no se') || r2.includes('no hay') || r2.includes('no existe') || r2.includes('ni idea') || r2.includes('registro');
+            let check3 = r3.includes('outlas'); // Cubre "outlast", "outlas", "outlast 1"
+
+            if (check1 && check2 && check3) {
+                document.getElementById('firewall').style.display = 'none';
+                document.getElementById('coordenadas').style.display = 'block';
+            } else {
+                alert("INTRUSO DETECTADO. RESPUESTAS INCORRECTAS.");
+            }
+        }
+
+        /* --- LÓGICA DE LAS COORDENADAS --- */
         // Coordenadas reales
         const NODO1 = { lat: -37.084739, lng: -73.152290 };
         const NODO2 = { lat: -37.097607, lng: -73.156938 };
@@ -74,7 +119,6 @@
         const TOLERANCIA = 0.001; 
 
         function validarPunto(inputStr, target) {
-            // Limpiar el texto y separar por coma
             let partes = inputStr.replace(/ /g, '').split(',');
             if(partes.length !== 2) return false;
             
@@ -83,7 +127,6 @@
             
             if(isNaN(lat) || isNaN(lng)) return false;
 
-            // Verificar si ambas coordenadas están dentro del radio de 100 metros
             let diffLat = Math.abs(lat - target.lat);
             let diffLng = Math.abs(lng - target.lng);
             
