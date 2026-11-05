@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Triangulación de Nodos</title>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            border: 1px solid #00ff00;
+            padding: 30px;
+            box-shadow: 0 0 15px #00ff0033;
+        }
+        input {
+            background: black;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 8px;
+            margin: 10px 0;
+            width: 200px;
+            font-family: inherit;
+        }
+        button {
+            background: #00ff00;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        button:hover { background: #00cc00; }
+        .oculto { display: none; margin-top: 20px; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>SISTEMA DE TRIANGULACIÓN ACTIVO</h2>
+        <p>Introduce la LATITUD exacta de los tres nodos requeridos:</p>
+        
+        <label>Nodo 1 (Tu casa):</label><br>
+        <input type="number" id="latCumpleañero" step="any" placeholder="Ej: -36.82512"><br>
+        
+        <label>Nodo 2 (Mi departamento):</label><br>
+        <input type="number" id="latMatias" step="any" placeholder="Ej: -36.82512"><br>
+        
+        <label>Nodo 3 (Casa de nuestro amigo):</label><br>
+        <input type="number" id="latAmigo" step="any" placeholder="Ej: -36.82512"><br>
+        
+        <button onclick="verificarCoordenadas()">VALIDAR TRIANGULACIÓN</button>
+
+        <div id="resultado" class="oculto"></div>
+    </div>
+
+    <script>
+        // REEMPLAZA ESTOS VALORES CON LAS LATITUDES REALES DE GOOGLE MAPS
+        const REAL_CUMPLEAÑERO = -36.12345; 
+        const REAL_MATIAS = -36.82512;       
+        const REAL_AMIGO = -37.01234;        
+        const TOLERANCIA = 0.003; // Margen de error tolerado
+
+        function verificarCoordenadas() {
+            let lat1 = parseFloat(document.getElementById('latCumpleañero').value);
+            let lat2 = parseFloat(document.getElementById('latMatias').value);
+            let lat3 = parseFloat(document.getElementById('latAmigo').value);
+            let res = document.getElementById('resultado');
+
+            // Verifica si los tres valores ingresados están dentro del margen de tolerancia
+            if (Math.abs(lat1 - REAL_CUMPLEAÑERO) <= TOLERANCIA &&
+                Math.abs(lat2 - REAL_MATIAS) <= TOLERANCIA &&
+                Math.abs(lat3 - REAL_AMIGO) <= TOLERANCIA) {
+                
+                res.style.display = "block";
+                res.innerHTML = `
+                    <h3 style="color: #00ff00;">>>> TRIANGULACIÓN EXITOSA <<<</h3>
+                    <p>Acceso concedido al archivo final.</p>
+                    <p>Une las siguientes piezas para formar la URL:</p>
+                    <br>
+                    <p>Parte 1: <b>https://drive.google.com/file/d/</b></p>
+                    <p>Parte 2: <b>TU_ID_DE_ARCHIVO_AQUI</b></p>
+                    <p>Parte 3: <b>/view?usp=sharing</b></p>
+                `;
+            } else {
+                alert("ERROR: Coordenadas incorrectas o fuera de rango. Revisa bien los signos negativos.");
+            }
+        }
+    </script>
+</body>
+</html>
