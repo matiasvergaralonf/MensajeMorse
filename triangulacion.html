@@ -30,8 +30,25 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            overflow-x: hidden;
+            overflow: hidden; /* Evita scroll para que el mouse invertido no se desajuste */
         }
+
+        /* --- CLASES PARA MOUSE INVERTIDO --- */
+        body.inverted, body.inverted * {
+            cursor: none !important; /* Esconde el cursor real en toda la página */
+        }
+
+        #fakeCursor {
+            position: fixed;
+            z-index: 999999;
+            pointer-events: none; /* Los clics lo atraviesan */
+            width: 22px;
+            height: 22px;
+            display: none;
+            filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5));
+            transform: translate(-2px, -2px); /* Ajuste de la punta */
+        }
+        body.inverted #fakeCursor { display: block; }
 
         #confettiCanvas {
             position: fixed;
@@ -141,6 +158,37 @@
             color: var(--accent);
         }
 
+        /* --- LETRAS FLOTANTES MINIJUEGO --- */
+        .floating-letter {
+            position: absolute;
+            width: 45px;
+            height: 45px;
+            background: var(--accent);
+            color: #0b0f19;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            box-shadow: 0 0 15px var(--accent-glow);
+            z-index: 1000;
+            cursor: pointer;
+            user-select: none;
+            transition: top 1.5s linear, left 1.5s linear; /* Movimiento suave */
+        }
+        
+        #wordBox {
+            font-size: 24px;
+            letter-spacing: 8px;
+            min-height: 35px;
+            border-bottom: 2px solid var(--accent);
+            margin: 15px auto;
+            width: 80%;
+            color: #fff;
+        }
+
         #memeOverlay {
             position: fixed;
             inset: 0;
@@ -170,7 +218,12 @@
         .hidden { display: none !important; }
     </style>
 </head>
-<body class="theme-phase1">
+<body class="theme-phase1 inverted"> <!-- Iniciamos con MOUSE INVERTIDO -->
+
+    <!-- CURSOR FALSO -->
+    <svg id="fakeCursor" viewBox="0 0 24 24">
+        <path fill="#ffffff" stroke="#000000" stroke-width="1.5" d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87c.45 0 .67-.54.35-.85L6.35 2.85a.5.5 0 0 0-.85.36Z" />
+    </svg>
 
     <canvas id="confettiCanvas"></canvas>
 
@@ -198,13 +251,14 @@
         <p>Introduce la ubicación satelital de la Casa del Cumpleañero.</p>
 
         <input type="text" id="coord1" placeholder="Ej: -97.12345, -12.67890">
-        <button class="btn-primary" onclick="validarPaso(1)">Procesar Coordenada</button>
+        <button class="btn-primary" id="btnNodo1" onclick="validarPaso(1)">Procesar Coordenada</button>
 
         <div id="result1" class="hidden">
-            <div class="token-box">
+            <div class="token-box" style="margin-bottom: 20px;">
                 PARTE 1: <b>https://drive.google.com/file/d/</b>
             </div>
-            <button class="btn-primary" style="margin-top:14px;" onclick="irPaso(2)">Siguiente Fase →</button>
+            <p style="color: var(--accent); font-weight: bold; font-size: 13px;">ATRAPA LAS LETRAS EN ORDEN PARA PASAR DE FASE:</p>
+            <div id="wordBox"></div>
         </div>
     </div>
 
@@ -248,7 +302,61 @@
     <script>
         console.log("%cSeguridad activa. No intentes saltar nodos.", "color: #38bdf8; font-weight: bold;");
 
-        // Configuración de cada nodo: coordenadas en Base64, nombre de foto y audio temático
+        /* =========================================
+           SISTEMA DE MOUSE INVERTIDO
+           ========================================= */
+        let mouseInvertidoActivo = true;
+        const fakeCursor = document.getElementById('fakeCursor');
+
+        // Mueve el cursor falso invertido al centro
+        document.addEventListener('mousemove', (e) => {
+            if (!mouseInvertidoActivo) return;
+            
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            // Inversión matemática
+            const fakeX = centerX - (e.clientX - centerX);
+            const fakeY = centerY - (e.clientY - centerY);
+            
+            fakeCursor.style.left = fakeX + 'px';
+            fakeCursor.style.top = fakeY + 'px';
+        });
+
+        // Intercepta los clics físicos y emite un clic en el cursor falso
+        document.addEventListener('click', (e) => {
+            if (!mouseInvertidoActivo) return;
+            
+            if (e.isTrusted) {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+                const fakeX = centerX - (e.clientX - centerX);
+                const fakeY = centerY - (e.clientY - centerY);
+                
+                // Ocultar el fakeCursor un milisegundo para no clickearlo a él mismo
+                fakeCursor.style.display = 'none';
+                const target = document.elementFromPoint(fakeX, fakeY);
+                fakeCursor.style.display = 'block';
+                
+                if (target) {
+                    target.focus(); // Vital para que pueda escribir en los inputs
+                    target.click(); // Gatilla botones o letras
+                }
+            }
+        }, true);
+
+        function apagarMouseInvertido() {
+            mouseInvertidoActivo = false;
+            document.body.classList.remove('inverted');
+        }
+
+
+        /* =========================================
+           CONFIGURACIÓN Y CÓDIGO NORMAL
+           ========================================= */
         const NODOS = {
             1: { 
                 lat: parseFloat(atob('LTM3LjA4NDczOQ==')), 
@@ -260,13 +368,13 @@
                 lat: parseFloat(atob('LTM3LjA5NzYwNw==')), 
                 lng: parseFloat(atob('LTczLjE1NjkzOA==')), 
                 img: "meme2.jpg",
-                sound: "sound2.mp3"
+                sound: "sound2.mp3" // Cambia si usas archivo o enlace de archive.org
             },
             3: { 
                 lat: parseFloat(atob('LTM3LjA5MTYyMQ==')), 
                 lng: parseFloat(atob('LTczLjE2NDMzMg==')), 
                 img: "meme3.jpg",
-                sound: "sound3.mp3"
+                sound: "sound3.mp3" // Cambia si usas archivo o enlace de archive.org
             }
         };
         const TOLERANCIA = 0.002;
@@ -288,30 +396,26 @@
             }
         }
 
-        /* --- NAVEGACIÓN Y PALETAS --- */
+        /* --- NAVEGACIÓN --- */
         function irPaso(paso) {
             document.querySelectorAll('.card').forEach(el => el.classList.add('hidden'));
             document.getElementById('step' + paso).classList.remove('hidden');
-
-            document.body.className = '';
-            document.body.classList.add('theme-phase' + paso);
+            document.body.className = (mouseInvertidoActivo ? 'inverted ' : '') + 'theme-phase' + paso;
         }
 
-        /* --- EFECTO MEME DESVANECIDO CON AUDIO ESPECÍFICO --- */
+        /* --- EFECTO MEME --- */
         function triggerScreamerLento(nodo) {
             if (nodo.sound) {
                 const sfx = new Audio(nodo.sound);
                 sfx.volume = 0.85;
                 sfx.play().catch(() => {});
             }
-
             const overlay = document.getElementById('memeOverlay');
             const img = document.getElementById('memeImg');
             img.src = nodo.img;
 
             overlay.classList.remove('hidden');
             setTimeout(() => { overlay.classList.add('active'); }, 50);
-
             setTimeout(() => {
                 overlay.classList.remove('active');
                 setTimeout(() => overlay.classList.add('hidden'), 5000);
@@ -326,7 +430,6 @@
                 alert("Formato inválido. Pega: Latitud, Longitud");
                 return;
             }
-
             let lat = parseFloat(partes[0]);
             let lng = parseFloat(partes[1]);
             let target = NODOS[nodoId];
@@ -335,9 +438,71 @@
                 lanzarConfeti();
                 triggerScreamerLento(target);
                 document.getElementById('result' + nodoId).classList.remove('hidden');
+                
+                // Si es el Nodo 1, iniciamos el minijuego de las letras y escondemos el botón
+                if(nodoId === 1) {
+                    document.getElementById('btnNodo1').classList.add('hidden');
+                    iniciarMinijuegoAvanzar();
+                }
             } else {
                 alert("Vector de posición fuera de radio de cobertura.");
             }
+        }
+
+        /* =========================================
+           MINIJUEGO "AVANZAR" (Letras flotantes)
+           ========================================= */
+        const palabraClave = "AVANZAR";
+        let letrasActuales = "";
+
+        function iniciarMinijuegoAvanzar() {
+            const container = document.body;
+            let index = 0;
+            
+            // Genera las letras regadas por la pantalla
+            palabraClave.split('').forEach(letra => {
+                let div = document.createElement('div');
+                div.innerText = letra;
+                div.className = 'floating-letter';
+                
+                // Posición inicial aleatoria
+                div.style.left = (Math.random() * 80 + 10) + 'vw';
+                div.style.top = (Math.random() * 80 + 10) + 'vh';
+                
+                // Hace que se muevan cada 1.5 - 2.5 segundos
+                div.moveInterval = setInterval(() => {
+                    div.style.left = (Math.random() * 80 + 10) + 'vw';
+                    div.style.top = (Math.random() * 80 + 10) + 'vh';
+                }, 1500 + Math.random() * 1000);
+
+                // Función al hacer click en la letra
+                div.onclick = () => {
+                    const letraEsperada = palabraClave[letrasActuales.length];
+                    if (letra === letraEsperada) {
+                        letrasActuales += letra;
+                        document.getElementById('wordBox').innerText = letrasActuales;
+                        div.style.display = 'none'; // Esconde la letra ya clickeada
+                        
+                        // Si completó AVANZAR
+                        if (letrasActuales === palabraClave) {
+                            // Limpia todos los intervalos y letras
+                            document.querySelectorAll('.floating-letter').forEach(l => {
+                                clearInterval(l.moveInterval);
+                                l.remove();
+                            });
+                            apagarMouseInvertido(); // ¡Fin del mouse invertido!
+                            alert("¡Acceso desbloqueado! Sistema de control de mouse restaurado.");
+                            irPaso(2);
+                        }
+                    } else {
+                        // Se equivocó, reiniciar
+                        letrasActuales = "";
+                        document.getElementById('wordBox').innerText = letrasActuales;
+                        document.querySelectorAll('.floating-letter').forEach(l => l.style.display = 'flex');
+                    }
+                };
+                container.appendChild(div);
+            });
         }
 
         /* --- TROLEO: CAJA EVASIVA (Nodo 2) --- */
@@ -348,7 +513,7 @@
             elem.style.top = randomY + 'px';
         }
 
-        /* --- CONFETI EN LOS BORDES --- */
+        /* --- CONFETI --- */
         function lanzarConfeti() {
             const canvas = document.getElementById('confettiCanvas');
             const ctx = canvas.getContext('2d');
@@ -377,14 +542,11 @@
                     p.y += p.vy;
                     p.vy += 0.2;
                     p.alpha -= 0.015;
-
                     ctx.globalAlpha = Math.max(0, p.alpha);
                     ctx.fillStyle = p.color;
                     ctx.fillRect(p.x, p.y, p.size, p.size);
-
                     if (p.alpha <= 0) particles.splice(index, 1);
                 });
-
                 if (particles.length > 0) requestAnimationFrame(render);
                 else ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
