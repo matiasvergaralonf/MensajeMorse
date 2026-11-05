@@ -30,23 +30,23 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            overflow: hidden; /* Evita scroll para que el mouse invertido no se desajuste */
+            overflow: hidden;
         }
 
         /* --- CLASES PARA MOUSE INVERTIDO --- */
         body.inverted, body.inverted * {
-            cursor: none !important; /* Esconde el cursor real en toda la página */
+            cursor: none !important;
         }
 
         #fakeCursor {
             position: fixed;
             z-index: 999999;
-            pointer-events: none; /* Los clics lo atraviesan */
+            pointer-events: none;
             width: 22px;
             height: 22px;
             display: none;
             filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5));
-            transform: translate(-2px, -2px); /* Ajuste de la punta */
+            transform: translate(-2px, -2px);
         }
         body.inverted #fakeCursor { display: block; }
 
@@ -158,7 +158,7 @@
             color: var(--accent);
         }
 
-        /* --- LETRAS FLOTANTES MINIJUEGO (AHORA ESTÁTICAS) --- */
+        /* --- LETRAS FLOTANTES MINIJUEGO --- */
         .floating-letter {
             position: absolute;
             width: 45px;
@@ -217,7 +217,7 @@
         .hidden { display: none !important; }
     </style>
 </head>
-<body class="theme-phase1 inverted"> <!-- Iniciamos con MOUSE INVERTIDO -->
+<body class="theme-phase1 inverted">
 
     <!-- CURSOR FALSO -->
     <svg id="fakeCursor" viewBox="0 0 24 24">
@@ -273,7 +273,7 @@
         <div id="result2" class="hidden">
             <p style="color: var(--accent); margin-top:15px; margin-bottom:5px;">⚠️ Copia el código (si puedes alcanzarlo):</p>
             <div id="evasiveBox" class="token-box" onmouseover="escaparCaja(this)" style="position: relative; transition: top 0.15s, left 0.15s;">
-                PARTE 2: <b>TU_ID_DE_DRIVE_AQUI</b>
+                PARTE 2: <b>19TpW0ECk_bzPIXBxE1gn-PTL_YfJe4-p</b>
             </div>
             <button class="btn-primary" style="margin-top:20px;" onclick="irPaso(3)">Siguiente Fase →</button>
         </div>
@@ -284,7 +284,7 @@
     <div id="step3" class="card hidden">
         <span class="badge">Nodo Gamma · Final</span>
         <h2>Coordenada 03: Performance Histórica</h2>
-        <p>Punto cardinal del enigma: En que recinto performo al máximo nivel la Ana, esto ocurrio entre 2017 y 2018.</p>
+        <p>Punto cardinal del enigma: En que recinto performó al máximo nivel la Ana, esto ocurrió entre 2017 y 2018.</p>
 
         <input type="text" id="coord3" placeholder="Ej: -97.12345, -12.67890">
         <button class="btn-primary" onclick="validarPaso(3)">Completar Vector</button>
@@ -348,7 +348,6 @@
             document.body.classList.remove('inverted');
         }
 
-
         /* =========================================
            CONFIGURACIÓN Y CÓDIGO NORMAL
            ========================================= */
@@ -363,13 +362,13 @@
                 lat: parseFloat(atob('LTM3LjA5NzYwNw==')), 
                 lng: parseFloat(atob('LTczLjE1NjkzOA==')), 
                 img: "meme2.jpg",
-                sound: "sound2.mp3"
+                sound: "https://ia801503.us.archive.org/15/items/bad-recorder-happy-birthday/bad-recorder-happy-birthday.mp3"
             },
             3: { 
                 lat: parseFloat(atob('LTM3LjA5MTYyMQ==')), 
                 lng: parseFloat(atob('LTczLjE2NDMzMg==')), 
                 img: "meme3.jpg",
-                sound: "sound3.mp3"
+                sound: "https://ia600708.us.archive.org/4/items/ultra-instinct-theme-clash-of-gods/ultra-instinct-theme-clash-of-gods.mp3"
             }
         };
         const TOLERANCIA = 0.002;
@@ -461,23 +460,20 @@
                 div.style.left = (Math.random() * 80 + 10) + 'vw';
                 div.style.top = (Math.random() * 80 + 10) + 'vh';
 
-                // Función al hacer click en la letra
                 div.onclick = () => {
                     const letraEsperada = palabraClave[letrasActuales.length];
                     if (letra === letraEsperada) {
                         letrasActuales += letra;
                         document.getElementById('wordBox').innerText = letrasActuales;
-                        div.style.display = 'none'; // Esconde la letra ya clickeada
+                        div.style.display = 'none'; 
                         
-                        // Si completó AVANZAR
                         if (letrasActuales === palabraClave) {
                             document.querySelectorAll('.floating-letter').forEach(l => l.remove());
-                            apagarMouseInvertido(); // ¡Fin del mouse invertido!
+                            apagarMouseInvertido(); 
                             alert("¡Acceso desbloqueado! Sistema de control de mouse restaurado.");
                             irPaso(2);
                         }
                     } else {
-                        // Se equivocó, reiniciar
                         letrasActuales = "";
                         document.getElementById('wordBox').innerText = letrasActuales;
                         document.querySelectorAll('.floating-letter').forEach(l => l.style.display = 'flex');
