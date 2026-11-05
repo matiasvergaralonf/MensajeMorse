@@ -73,13 +73,13 @@
             <p>Pega las coordenadas exactas de Google Maps (latitud, longitud) de los tres nodos requeridos:</p>
             
             <label>Nodo 1 (Casa del cumpleañero):</label><br>
-            <input type="text" id="coord1" placeholder="Ej: -37.084, -73.152"><br>
+            <input type="text" id="coord1" placeholder="Ej: -97.123, -12.456"><br>
             
             <label>Nodo 2 (La mejor cancha de Chile):</label><br>
-            <input type="text" id="coord2" placeholder="Ej: -37.084, -73.152"><br>
+            <input type="text" id="coord2" placeholder="Ej: -97.888, -12.333"><br>
             
             <label>Nodo 3 (El acertijo: lugar donde performó a máximo nivel la Ana):</label><br>
-            <input type="text" id="coord3" placeholder="Ej: -37.084, -73.152"><br>
+            <input type="text" id="coord3" placeholder="Ej: -97.999, -12.111"><br>
             
             <button onclick="verificarCoordenadas()">VALIDAR TRIANGULACIÓN</button>
 
@@ -91,15 +91,13 @@
     <script>
         /* --- LÓGICA DEL FIREWALL DE AMISTAD --- */
         function validarIdentidad() {
-            // Convertimos las respuestas a minúsculas para evaluar más fácil
             let r1 = document.getElementById('q1').value.toLowerCase();
             let r2 = document.getElementById('q2').value.toLowerCase();
             let r3 = document.getElementById('q3').value.toLowerCase();
 
-            // Criterios flexibles:
             let check1 = r1.includes('11'); 
             let check2 = r2.includes('no se') || r2.includes('no hay') || r2.includes('no existe') || r2.includes('ni idea') || r2.includes('registro');
-            let check3 = r3.includes('outlas'); // Cubre "outlast", "outlas", "outlast 1"
+            let check3 = r3.includes('outlas'); 
 
             if (check1 && check2 && check3) {
                 document.getElementById('firewall').style.display = 'none';
@@ -110,13 +108,12 @@
         }
 
         /* --- LÓGICA DE LAS COORDENADAS --- */
-        // Coordenadas reales
         const NODO1 = { lat: -37.084739, lng: -73.152290 };
         const NODO2 = { lat: -37.097607, lng: -73.156938 };
         const NODO3 = { lat: -37.091621, lng: -73.164332 };
         
-        // Tolerancia de ~100 metros
-        const TOLERANCIA = 0.001; 
+        // Tolerancia subida a ~200 metros para mayor comodidad
+        const TOLERANCIA = 0.002; 
 
         function validarPunto(inputStr, target) {
             let partes = inputStr.replace(/ /g, '').split(',');
